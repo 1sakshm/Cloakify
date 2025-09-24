@@ -1,8 +1,5 @@
 (() => {
-  // Constants
   const DELIMITER = '####END####';
-
-  // Elements
   const encPill = document.getElementById('encPill');
   const decPill = document.getElementById('decPill');
   const encryptSection = document.getElementById('encryptSection');
@@ -24,7 +21,6 @@
   let currentImage = new Image();
   let currentImageLoaded = false;
 
-  // Mode toggle
   encPill.addEventListener('click', () => { setMode('enc'); });
   decPill.addEventListener('click', () => { setMode('dec'); });
 
@@ -39,8 +35,6 @@
       clearStatus();
     }
   }
-
-  // Utility: show status
   function showStatus(msg, ok=true){
     statusArea.style.display='block';
     statusArea.textContent = msg;
@@ -48,7 +42,6 @@
   }
   function clearStatus(){ statusArea.style.display='none'; statusArea.textContent=''; }
 
-  // Load an image into preview and canvas
   function loadImageFromSrc(src){
     currentImageLoaded = false;
     currentImage = new Image();
@@ -65,10 +58,6 @@
     currentImage.src = src;
   }
 
-  // Random flower image (Unsplash quick source)
-  
-
-  // Upload cover input
   uploadCover.addEventListener('change', (e)=>{
     clearStatus();
     const f = e.target.files && e.target.files[0];
@@ -80,16 +69,14 @@
     reader.readAsDataURL(f);
   });
 
-  // Update meta info
   function updateMeta(){
     if(!currentImageLoaded) { metaArea.textContent = 'Image info: —'; return; }
     const w = currentImage.width, h = currentImage.height;
-    const capacity = w * h * 3; // bits
+    const capacity = w * h * 3; 
     const maxChars = Math.floor(capacity / 8);
     metaArea.textContent = `Image info: ${w} x ${h} — capacity: ${capacity} bits (${maxChars} chars).`;
   }
 
-  // Prepare canvas image data
   function paintToCanvas(){
     if(!currentImageLoaded) return null;
     const canvas = hiddenCanvas;
@@ -101,7 +88,6 @@
     return {canvas, ctx};
   }
 
-  // Helpers for binary conversion
   function stringToBinary(str){
     let bin = '';
     for(let i=0;i<str.length;i++){
@@ -122,7 +108,6 @@
     return out;
   }
 
-  // Encode: modify LSB of R,G,B sequentially
   function encodeMessage(){
     if(!currentImageLoaded){ showStatus('Select or upload a cover image first.', false); return; }
     const msg = messageInput.value || '';
@@ -133,7 +118,7 @@
     const {canvas, ctx} = paintToCanvas() || {};
     if(!canvas) { showStatus('Could not prepare image canvas.', false); return; }
     const imgData = ctx.getImageData(0,0,canvas.width, canvas.height);
-    const data = imgData.data; // RGBA
+    const data = imgData.data; 
 
     const capacity = canvas.width * canvas.height * 3; // bits
     if(bin.length > capacity){
@@ -141,21 +126,14 @@
       return;
     }
 
-    // iterate pixels
     let bitIndex = 0;
     for(let p=0; p < data.length && bitIndex < bin.length; p += 4){
-      // R
       if(bitIndex < bin.length){ data[p] = setLSB(data[p], bin[bitIndex++]); }
-      // G
       if(bitIndex < bin.length){ data[p+1] = setLSB(data[p+1], bin[bitIndex++]); }
-      // B
       if(bitIndex < bin.length){ data[p+2] = setLSB(data[p+2], bin[bitIndex++]); }
-      // skip alpha (p+3)
     }
 
     ctx.putImageData(imgData, 0,0);
-
-    // produce output blob and auto-download
     canvas.toBlob((blob) => {
       if(!blob){ showStatus('Failed to generate output image.', false); return; }
       const url = URL.createObjectURL(blob);
@@ -171,12 +149,11 @@
   function setLSB(value, bit){
     const even = (value & 1) === 0;
     const bitInt = bit === '1' ? 1 : 0;
-    if((value & 1) === bitInt) return value; // already correct
-    if(bitInt === 1) return value | 1; // set LSB
-    return value & (~1); // clear LSB
+    if((value & 1) === bitInt) return value; 
+    if(bitInt === 1) return value | 1; 
+    return value & (~1); 
   }
 
-  // Decode: read LSBs and reconstruct
   function decodeMessageFromImage(imgFileOrSrc){
     clearStatus();
     const img = new Image();
@@ -190,7 +167,6 @@
       const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
       const data = imgData.data;
 
-      // read bits
       let bin = '';
       for(let p=0;p<data.length;p+=4){
         bin += (data[p] & 1).toString();
@@ -220,12 +196,10 @@
     }
   }
 
-  // UI: Upload stego file for decoding
   uploadStego.addEventListener('change', (e)=>{
     clearStatus();
     const f = e.target.files && e.target.files[0];
     if(!f) return;
-    // preview it
     const reader = new FileReader();
     reader.onload = (ev)=>{ previewImage.src = ev.target.result; currentImageLoaded = false; updateMeta(); decodeFileForUser(f); };
     reader.readAsDataURL(f);
@@ -235,19 +209,16 @@
     decodeMessageFromImage(file);
   }
 
-  // decode button (for when user uploaded via uploadStego)
   decodeBtn.addEventListener('click', ()=>{
     const files = uploadStego.files;
     if(!files || files.length===0){ showStatus('Please upload a stego image to decode.', false); return; }
     decodeMessageFromImage(files[0]);
   });
 
-  // encode button
   encodeBtn.addEventListener('click', ()=>{
     encodeMessage();
   });
 
-  // preview capacity button
   previewEncodeBtn.addEventListener('click', ()=>{
     if(!currentImageLoaded){ showStatus('Select or upload an image first to see capacity.', false); return; }
     const {canvas} = paintToCanvas() || {};
@@ -257,11 +228,7 @@
     showStatus(`Capacity: ${cap} bits (${maxChars} characters).`, true);
   });
 
-  // helper to show message in a modal-like way (simple prompt)
   function showRevealModal(msg){
-    // simple custom modal using prompt-like behavior
-    // We'll display in a confirm box style using a new window-ish element - but for simplicity use window.prompt for copy ease
-    // But the user asked for the message to be shown on screen — we will create a pleasant overlay.
 
     const overlay = document.createElement('div');
     overlay.style.position = 'fixed'; overlay.style.inset = '0'; overlay.style.display='flex'; overlay.style.alignItems='center'; overlay.style.justifyContent='center'; overlay.style.background='rgba(2,6,23,0.6)'; overlay.style.zIndex=9999;
@@ -281,12 +248,9 @@
     document.body.appendChild(overlay);
   }
 
-  // When user clicks preview image (in preview column) allow replacing with uploaded stego too
   previewImage.addEventListener('click', ()=>{
-    // small easter: if encrypt mode, open upload, if decrypt mode, open stego upload
     if(encPill.classList.contains('active')) uploadCover.click(); else uploadStego.click();
   });
 
-  // initial placeholder
   updateMeta();
 })();
