@@ -66,3 +66,67 @@ small.hint{display:block;font-size:12px;color:rgba(255,255,255,0.5);margin-top:8
     .card{grid-template-columns:1fr;}
     .preview{order:-1}
 }
+@media (max-width: 600px) {
+    body {
+        padding: 8px;
+        min-height: 100vh;
+        align-items: flex-start;
+    }
+    .card {
+        width: 100%;
+        max-width: 100vw;
+        padding: 12px;
+        border-radius: 12px;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        box-shadow: 0 4px 16px rgba(2,6,23,0.5);
+    }
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    h1 {
+        font-size: 17px;
+    }
+    p.lead {
+        font-size: 12px;
+    }
+    .controls,
+    .preview {
+        padding: 10px;
+        border-radius: 8px;
+        min-height: unset;
+    }
+    .image-wrap {
+        height: 140px;
+        border-radius: 8px;
+    }
+    .btn, .pill {
+        padding: 8px 10px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+    input[type="text"], textarea {
+        padding: 8px;
+        font-size: 13px;
+        border-radius: 7px;
+    }
+    textarea {
+        min-height: 70px;
+    }
+    .row {
+        flex-direction: column;
+        gap: 6px;
+        align-items: stretch;
+    }
+    .meta, .status, footer, small.hint {
+        font-size: 11px;
+    }
+    footer {
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+        margin-top: 8px;
+    }
+}
